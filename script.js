@@ -4,6 +4,7 @@ const mainDisplay = document.querySelector('.main-line')
 const resetBtn = document.querySelector('[data-reset]')
 const equalBtn = document.querySelector('[data-equal]')
 const backspaceBtn = document.querySelector('[data-backspace]')
+const commaBtn = document.querySelector('[data-point]')
 
 let operandA
 let operandB
@@ -13,6 +14,7 @@ let clearDisplay = false
 
 function clearMainDisplay() {
 	mainDisplay.textContent = ''
+	clearDisplay = false
 }
 function reset() {
 	mainDisplay.textContent = ''
@@ -20,15 +22,23 @@ function reset() {
 	operandB = ''
 	operator = ''
 	result = ''
+	clearDisplay = false
 }
 function fixInputData() {
 	mainDisplay.textContent = mainDisplay.textContent.toString().slice(0, -1)
 }
-
-function calculate() {
+function appendPoint() {
+	if (clearDisplay) clearMainDisplay()
+	if (mainDisplay.textContent.includes('.')) return
+	else if (mainDisplay.textContent === '') mainDisplay.textContent = '0'
+	mainDisplay.textContent += '.'
+}
+function evaluate() {
+	if (result || clearDisplay) return
 	operandB = mainDisplay.textContent
-	if (operator == '/' && operandB == 0) {
-		alert(`can\'t divide by 0`)
+	if (operator === '/' && operandB == 0) {
+		alert("Can't divide by 0!")
+		reset()
 		return
 	}
 	clearMainDisplay()
@@ -36,19 +46,21 @@ function calculate() {
 	mainDisplay.textContent = Math.round(result * 1000) / 1000
 	clearDisplay = true
 }
-
-function integrateNums(e) {
-	if (clearDisplay || mainDisplay.textContent == 0) clearMainDisplay()
-	clearDisplay = false
-	mainDisplay.textContent += e.target.textContent
+function appendNums(number) {
+	if (clearDisplay || mainDisplay.textContent === '0') clearMainDisplay()
+	mainDisplay.textContent += number
 }
-
-function setOperation(e) {
+function setOperation(operatorKey) {
+	if (result) {
+		operandA = result
+	} else if (operator) {
+		evaluate()
+	}
+	result = ''
 	operandA = mainDisplay.textContent
-	operator = e.target.textContent
+	operator = operatorKey
 	clearDisplay = true
 }
-
 function doTheMath(operator, a, b) {
 	switch (operator) {
 		case '+':
@@ -64,13 +76,14 @@ function doTheMath(operator, a, b) {
 			result = a / b
 			break
 		default:
-			alert('unable to operate!')
-		// return result
+			return
 	}
 }
 
 backspaceBtn.addEventListener('click', fixInputData)
-equalBtn.addEventListener('click', calculate)
+equalBtn.addEventListener('click', evaluate)
 resetBtn.addEventListener('click', reset)
-numberBtns.forEach(num => num.addEventListener('click', integrateNums))
-operators.forEach(operator => operator.addEventListener('click', setOperation))
+numberBtns.forEach(num => num.addEventListener('click', () => appendNums(num.textContent)))
+operators.forEach(operator => operator.addEventListener('click', () => setOperation(operator.textContent)))
+commaBtn.addEventListener('click', appendPoint)
+// window.addEventListener('keydown', handleKeyboard)
